@@ -1,32 +1,42 @@
 import requests
 from bs4 import BeautifulSoup
 
+
 def empty_bullshit(user_soup):
+    '''
+    This function cleans script tags and other irrelevant html lines.
+    '''
     for script in user_soup.find_all('script'):
         script.extract()
     for script in user_soup.find_all('ins'):
         script.extract()
-    for script in user_soup.find_all('div', attrs={u'id':u'google_ads_frame1'}):
+    for script in user_soup.find_all('div', attrs={u'id': u'google_ads_frame1'}):
         script.extract()
     return user_soup.get_text('\n')
 
+
 def html_cleanup(raw_html):
+    '''
+    At the moment this function searches for verdict numbers and puts double square brackets around them.
+    '''
     new_html = []
     for i, word in enumerate(raw_html[0:-7]):
-            if len(word) == 7:
-                if word[0:4].isdigit() and word[4] == '/' and word[5:8].isdigit():
-                    # print (word,)
-                    word = '[[{}]]'.format(word)
-                    # print (word)
-            new_html.append(word)
+        if len(word) == 7:
+            if word[0:4].isdigit() and word[4] == '/' and word[5:8].isdigit():
+                # print (word,)
+                word = '[[{}]]'.format(word)
+                # print (word)
+        new_html.append(word)
 
     cleaned_html = ' '.join(new_html)
     # print (cleaned_html)
     return cleaned_html
 
 
-header = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0',}
-website = raw_input('Please enter website address: ')
+header = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0', }
+website = input('Please enter website address: ')
+if website[-1] != '/':
+    website = '{}/'.format(website)
 r = requests.get(website, headers=header)
 
 soup = BeautifulSoup(r.content)
@@ -46,8 +56,6 @@ for i, link in enumerate(days_links):
     soup = BeautifulSoup(r.content)
     print (link)
 
-
-
     for verdict_link in soup.find_all('a'):
         if verdict_link.get('href')[0:5].isdigit():
             verdict_links.append(verdict_link.get('href'))
@@ -64,3 +72,4 @@ for i, link in enumerate(days_links):
         with open(file='./verdicts/{}{}'.format(verdict[0:-4], 'md'), mode='w', encoding='utf-8') as f:
             f.write(title)
             f.write(raw_html)
+
